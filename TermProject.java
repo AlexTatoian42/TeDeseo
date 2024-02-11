@@ -2,32 +2,40 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Random;
+import java.util.Scanner;
 
 public class TermProject 
 {
     public static void main(String[] args) 
     {
-        // String message = "At four surveillance on enemy camp";
-        // String keyword = "MAINE";
-        // String keyword2 = "LESRF"; //both must be same length for keywords
-        
-        String fileName = "plaintext3.txt";
+        Scanner myScanner = new Scanner(System.in);
+        String fileName = "plaintext.txt"; //needs default name to be safe
+        System.out.println("How many characters should the keyword have?");
+        int len = myScanner.nextInt();
+        System.out.println("Which file would you like to use? (Press 1, 2, or 3) or will default to 1");
+        int fileChoice = myScanner.nextInt();
+        if (fileChoice == 2)
+        {
+            fileName = "plaintext2.txt";
+        }
+        else if (fileChoice ==  3)
+        {
+            fileName = "plaintext3.txt";
+        }
+        else
+        {
+            //default is already set
+        }
+
+        //grabs needed message and keywords
         String message = fileString(fileName);
-        //System.out.println(message);
-        int len = 5; //must be 5-10 length, user changeable
         String keyword = keyGenerator(len);
         String keyword2 = keyGenerator(len);
         
         
-        char[] messageArray = initCharArray(message);
-        //System.out.println("CharArray in main: " );
-        // for (int i = 0; i < messageArray.length; i++)
-        // {
-        //     System.out.print(messageArray[i]);
-        // }
-        // System.out.println();
+        char[] messageArray = initCharArray(message); //turns message into 1d array
 
-        //System.out.println(messageArray.length);
+
         char[][] encryptedMessage = rewriteAndEncrypt(messageArray, keyword, keyword2); //will turn 1d array into 2d then encrypt and return encrypted
         for (int i = 0; i < encryptedMessage.length; i++)
         {
@@ -44,7 +52,7 @@ public class TermProject
         
         
         decryptCipher(encryptedMessage, keyword, keyword2);//double encryption also working
-
+        myScanner.close();
 
 
     }
@@ -92,6 +100,7 @@ public class TermProject
 
     public static int[] initIntArray (int length)
     {
+        //starts an array with all 1s for order purposes
         int[] array = new int [length];
         for (int i = 0 ; i < length; i++)
         {
@@ -103,6 +112,9 @@ public class TermProject
 
     public static char[] initCharArray(String keyword)
     {       
+        //counts array without whitespace first in a loop
+        //then fills in whenever characters are not whitespaces
+        //goes toUpper
         int index = 0;
 
         for (int i = 0; i < keyword.length(); i++)
@@ -146,17 +158,11 @@ public class TermProject
 
 
 
-        if (check > array.length) //will pad array when necessary
+        if (check > array.length) //will pad array when it wont fit into size
         {
             array = padArray(array, check);
         }
 
-        // for (int i = 0; i < array.length; i++)
-        // {
-        //     System.out.print(array[i]);
-        // }
-         
-        // System.out.println();
         
         char [][] rewritten = new char [rows][columns];
         int index = 0;
@@ -169,29 +175,25 @@ public class TermProject
             }
         }
 
-        // for (int i = 0; i < rewritten.length; i++)
-        // {
-        //     for (int j = 0; j < rewritten[0].length; j++)
-        //     {
-        //         System.out.print(rewritten[i][j]);
-        //     }
-        //     System.out.println();
-        
-        // }
 
         
 
 
         rewritten = encryptMessage(rewritten); //passes off plain 2d array to be encrypted
-        if (useKeyWordOrder)
+        
+        if (useKeyWordOrder)//single transpos
         {
             int[] keywordIntOrder = determineOrder(keyword);
-            if (useDoubleKeyWordOrder) //double transposition
+
+            //enters double tranpos
+            if (useDoubleKeyWordOrder) 
             {
                 int[] keywordIntOrder2 = determineOrder(keyword2);
                 rewritten = encryptWithOrder(rewritten, keywordIntOrder);
                 return rewritten = encryptWithOrder(rewritten, keywordIntOrder2);
             }
+
+
             return rewritten = encryptWithOrder(rewritten, keywordIntOrder);
         }
         //else with no keyword encryption
@@ -203,7 +205,7 @@ public class TermProject
         char[][] encrypted;
         int rows = message.length;
         int columns = message[0].length;      
-        encrypted = new char[columns][rows];
+        encrypted = new char[columns][rows]; //transposes
         for (int j = 0; j < message[0].length; j++) //encrypts message
         {
             for (int i = 0; i < message.length; i++)
@@ -214,14 +216,6 @@ public class TermProject
             //System.out.println();
         }
 
-        // for (int i = 0; i < encrypted.length; i++)
-        // {
-        //     for (int j = 0; j < encrypted[0].length; j++)
-        //     {
-        //         System.out.print(encrypted[i][j]);
-        //     }
-        //     System.out.println();
-        // }
 
         return encrypted;
         
@@ -262,7 +256,7 @@ public class TermProject
             //System.out.println(thisRow);
             for (int j = 0; j < message[0].length; j++) //encrypts message
             {
-                encrypted[i][j] = message[thisRow][j]; 
+                encrypted[i][j] = message[thisRow][j]; //uses order
 
             }
         }
@@ -326,29 +320,31 @@ public class TermProject
         int[] orderArray = determineOrder(keyword);
         int row = encryptedMessage.length;
         int column = encryptedMessage[0].length;
-        char[][] message = new char[row][column];
-        char[][] message2 = new char[row][column];
+        char[][] message = new char[row][column]; //both same sizes
+        char[][] message2 = new char[row][column]; //both same sizes
         int thisRow;
-        char [][] finalMessage = new char[column][row];
-        //rewrites back into order (breaks single encryption)
+        char [][] finalMessage = new char[column][row]; //transpose back
+
+
+        //rewrites back into order (needs to break second keyword first in double transpos)
         int []orderArray2 = determineOrder(keyword2);
         for (int i = 0; i < orderArray2.length; i++)
         {
             thisRow = orderArray2[i];
             //System.out.println(thisRow);
-            for (int j = 0; j < encryptedMessage[0].length; j++) //encrypts message
+            for (int j = 0; j < encryptedMessage[0].length; j++) 
             {
                 message2[thisRow][j] = encryptedMessage[i][j]; 
 
             }
         }
 
-        //rewrite into original order (breaks double encryption)
+        //rewrite into original order (breaks first keyword second in double transpos)
         for (int i = 0; i < orderArray.length; i++)
         {
             thisRow = orderArray[i];
             //System.out.println(thisRow);
-            for (int j = 0; j < encryptedMessage[0].length; j++) //encrypts message
+            for (int j = 0; j < encryptedMessage[0].length; j++) 
             {
                 message[thisRow][j] = message2[i][j]; 
 
@@ -387,7 +383,7 @@ public class TermProject
     {
         String keyword = "";
         Random random = new Random();
-        boolean [] repeat = new boolean[25];
+        boolean [] repeat = new boolean[25]; //will show when each randomint is used
         
         for (int i = 0; i < length; i++)
         {
@@ -397,7 +393,7 @@ public class TermProject
             {
                 while (repeat[randInt])
                 {
-                    randInt = random.nextInt(25);
+                    randInt = random.nextInt(25); //will go until finding a new one
                 }
             }
             char createString = (char) (randInt +'A');
@@ -411,16 +407,16 @@ public class TermProject
     {
         String line;
         StringBuilder content = new StringBuilder();
-
+        //opens file, reads into string
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             
             while ((line = br.readLine()) != null) {
                 content.append(line).append("\n");
             }
         } catch (IOException e) {
-            e.printStackTrace(); // Handle the exception according to your application's needs
+            e.printStackTrace(); // different exceptions wherever necessary
         }
-
+        //returns a string
         return content.toString();
 
         //return line;
