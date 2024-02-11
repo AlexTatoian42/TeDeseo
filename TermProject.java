@@ -5,6 +5,9 @@ public class TermProject
     {
         String message = "Stan Twice for clear skin";
         String keyword = "TWICE";
+        String keyword2 = "LESRF";
+        
+        
         
         char[] messageArray = initCharArray(message);
         // for (int i = 0; i < messageArray.length; i++)
@@ -12,7 +15,7 @@ public class TermProject
         //     System.out.print(messageArray[i]);
         // }
         // System.out.println(messageArray.length);
-        char[][] encryptedMessage = rewriteAndEncrypt(messageArray, keyword); //will turn 1d array into 2d then encrypt and return encrypted
+        char[][] encryptedMessage = rewriteAndEncrypt(messageArray, keyword, keyword2); //will turn 1d array into 2d then encrypt and return encrypted
         for (int i = 0; i < encryptedMessage.length; i++)
         {
             for (int j = 0; j < encryptedMessage[0].length; j++)
@@ -24,7 +27,10 @@ public class TermProject
 
         
         System.out.println();
-
+        //decryptCipher (encryptedMessage, keyword); //single encryption works fine
+        
+        
+        decryptCipher(encryptedMessage, keyword, keyword2);//double encryption also working
 
 
 
@@ -113,12 +119,12 @@ public class TermProject
         return array;
     }
 
-    public static char[][] rewriteAndEncrypt (char[] array, String keyword) //array = message in array form, key = length of the keyword
+    public static char[][] rewriteAndEncrypt (char[] array, String keyword, String keyword2) //array = message in array form, key = length of the keyword
     {
         //FOR GENERAL CASE (no order, just length) -> boolean = FALSE
         //FOR SPECIFIC CASE (we want to use HACK order 3,1,2,4) -> boolean = TRUE
-        boolean useKeyWordOrder = false; //turn this on to test with specific keywords not just their length
-
+        boolean useKeyWordOrder = true; //turn this on to test with specific keywords not just their length
+        boolean useDoubleKeyWordOrder = false; //turn this true to test double transposition
 
         int key = keyword.length();
         int rows = key; //rows = keyLength
@@ -161,13 +167,22 @@ public class TermProject
         // }
 
         
+
+
+        rewritten = encryptMessage(rewritten); //passes off plain 2d array to be encrypted
         if (useKeyWordOrder)
         {
             int[] keywordIntOrder = determineOrder(keyword);
+            if (useDoubleKeyWordOrder) //double transposition
+            {
+                int[] keywordIntOrder2 = determineOrder(keyword2);
+                rewritten = encryptWithOrder(rewritten, keywordIntOrder);
+                return rewritten = encryptWithOrder(rewritten, keywordIntOrder2);
+            }
             return rewritten = encryptWithOrder(rewritten, keywordIntOrder);
         }
-
-        return rewritten = encryptMessage(rewritten); //passes off plain 2d array to be encrypted
+        //else
+        return rewritten;
     }
 
     public static char[][] encryptMessage(char[][] message)
@@ -201,7 +216,7 @@ public class TermProject
 
     public static char[] padArray (char[] array, int size)
     {
-        char defaultAppend = '?'; //needs a default, can be anything
+        char defaultAppend = 'Z'; //needs a default, can be anything
         char[] newArray = new char[size];
         int beginHere = array.length;
 
@@ -234,11 +249,122 @@ public class TermProject
             //System.out.println(thisRow);
             for (int j = 0; j < message[0].length; j++) //encrypts message
             {
-                encrypted[thisRow][j] = message[thisRow][j]; 
+                encrypted[i][j] = message[thisRow][j]; 
 
             }
         }
 
         return encrypted;
+    }
+
+    public static void decryptCipher(char[][] encryptedMessage, String keyword)
+    {
+        int[] orderArray = determineOrder(keyword);
+        int row = encryptedMessage.length;
+        int column = encryptedMessage[0].length;
+        char[][] message = new char[row][column];
+        int thisRow;
+        char [][] finalMessage = new char[row][column];
+        //rewrites back into order (breaks single encryption)
+        for (int i = 0; i < orderArray.length; i++)
+        {
+            thisRow = orderArray[i];
+            //System.out.println(thisRow);
+            for (int j = 0; j < encryptedMessage[0].length; j++) //encrypts message
+            {
+                message[thisRow][j] = encryptedMessage[i][j]; 
+
+            }
+        }
+
+        //rewrites into full order (goes from column order to row order)
+        for (int j = 0; j < message[0].length; j++) //encrypts message
+        {
+            for (int i = 0; i < message.length; i++)
+            {
+                finalMessage[i][j] = message[j][i];
+                //System.out.print(message[i][j]);
+            }
+            //System.out.println();
+        }
+
+        //turns into string (can keep as printed 2d char array if wanted as well)
+        String messageString = ""; //can reutrn this and turn into a string function
+        for (int i = 0; i < finalMessage.length; i++)
+        {
+            for (int j = 0; j < finalMessage[0].length; j++)
+            {
+                messageString += finalMessage[i][j];
+                //System.out.print(finalMessage[i][j]);
+            }
+            //System.out.println();
+        }
+        System.out.println();
+        System.out.println(messageString);
+        System.out.println();
+
+    }
+
+    //overload for if double transposition is used
+    public static void decryptCipher(char[][] encryptedMessage, String keyword, String keyword2)
+    {
+        int[] orderArray = determineOrder(keyword);
+        int row = encryptedMessage.length;
+        int column = encryptedMessage[0].length;
+        char[][] message = new char[row][column];
+        char[][] message2 = new char[row][column];
+        int thisRow;
+        char [][] finalMessage = new char[row][column];
+        //rewrites back into order (breaks single encryption)
+        int []orderArray2 = determineOrder(keyword2);
+        for (int i = 0; i < orderArray2.length; i++)
+        {
+            thisRow = orderArray2[i];
+            //System.out.println(thisRow);
+            for (int j = 0; j < encryptedMessage[0].length; j++) //encrypts message
+            {
+                message2[thisRow][j] = encryptedMessage[i][j]; 
+
+            }
+        }
+
+        //rewrite into original order (breaks double encryption)
+        for (int i = 0; i < orderArray.length; i++)
+        {
+            thisRow = orderArray[i];
+            //System.out.println(thisRow);
+            for (int j = 0; j < encryptedMessage[0].length; j++) //encrypts message
+            {
+                message[thisRow][j] = message2[i][j]; 
+
+            }
+        }
+
+
+        //rewrites into full order (goes from column order to row order)
+        for (int j = 0; j < message[0].length; j++) //encrypts message
+        {
+            for (int i = 0; i < message.length; i++)
+            {
+                finalMessage[i][j] = message[j][i];
+                //System.out.print(message[i][j]);
+            }
+            //System.out.println();
+        }
+
+        //turns into string (can keep as printed 2d char array if wanted as well)
+        String messageString = ""; //can reutrn this and turn into a string function
+        for (int i = 0; i < finalMessage.length; i++)
+        {
+            for (int j = 0; j < finalMessage[0].length; j++)
+            {
+                messageString += finalMessage[i][j];
+                //System.out.print(finalMessage[i][j]);
+            }
+            //System.out.println();
+        }
+        System.out.println();
+        System.out.println(messageString);
+        System.out.println();
     }
 }
