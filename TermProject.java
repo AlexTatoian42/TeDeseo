@@ -54,6 +54,10 @@ public class TermProject
         decryptCipher(encryptedMessage, keyword, keyword2);//double encryption also working
         myScanner.close();
 
+        String phrase = getStringPhrase(keyword, keyword2, messageArray); // gets message with padded letters
+        // System.out.println(phrase);
+
+        bruteForce(phrase, len, encryptedMessage);
 
     }
 
@@ -264,7 +268,7 @@ public class TermProject
         return encrypted;
     }
 
-    public static void decryptCipher(char[][] encryptedMessage, String keyword)
+    public static String decryptCipher(char[][] encryptedMessage, String keyword)
     {
         int[] orderArray = determineOrder(keyword);
         int row = encryptedMessage.length;
@@ -308,14 +312,15 @@ public class TermProject
             }
             //System.out.println();
         }
-        System.out.println();
-        System.out.println(messageString);
-        System.out.println();
+        // System.out.println();
+        // System.out.println(messageString);
+        // System.out.println();
+        return messageString;
 
     }
 
     //overload for if double transposition is used
-    public static void decryptCipher(char[][] encryptedMessage, String keyword, String keyword2)
+    public static String decryptCipher(char[][] encryptedMessage, String keyword, String keyword2)
     {
         int[] orderArray = determineOrder(keyword);
         int row = encryptedMessage.length;
@@ -374,9 +379,10 @@ public class TermProject
             }
             //System.out.println();
         }
-        System.out.println();
-        System.out.println(messageString);
-        System.out.println();
+        // System.out.println();
+        // System.out.println(messageString);
+        // System.out.println();
+        return messageString;
     }
 
     public static String keyGenerator (int length)
@@ -421,5 +427,51 @@ public class TermProject
 
         //return line;
 
+    }
+
+    public static String getStringPhrase(String keyword, String keyword2, char[] message)
+    {
+        int key = keyword.length();
+        int columns = key; //rows = keyLength
+        int rows = Math.ceilDiv(message.length, key);  //will round up
+        int check = rows* columns;
+        char [][] rewritten = new char [rows][columns];
+        if (check > message.length) //will pad array when it wont fit into size
+        {
+            message = padArray(message, check);
+        }
+        int index = 0;
+        String returnString = "";
+        for (int i = 0; i < rows;i++) // writes message plainly into a 2d array
+        {
+            for (int j = 0; j < columns; j++)
+            {
+                rewritten[i][j] = message[index];
+                returnString += rewritten[i][j];
+                //System.out.print(rewritten[i][j]);
+                index++;
+            }
+            
+        }
+        return returnString;
+
+
+    }
+
+    public static void bruteForce (String message, int len, char[][] encryptedMessage)
+    {
+        String keyword, keyword2, checkMessage;
+        long count = 0;
+        do 
+        {
+            keyword = keyGenerator(len);
+            keyword2 = keyGenerator(len);
+            checkMessage = decryptCipher(encryptedMessage, keyword, keyword2);
+            count++;
+        }
+        while (!message.equalsIgnoreCase(checkMessage));
+
+        System.out.println("The phrase has been decrypted after " + count + " tries!");
+        System.out.println(checkMessage);
     }
 }
