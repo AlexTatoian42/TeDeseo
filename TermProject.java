@@ -1,20 +1,33 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Random;
 
 public class TermProject 
 {
     public static void main(String[] args) 
     {
-        String message = "Stan Twice for clear skin";
-        String keyword = "TWICE";
-        String keyword2 = "LESRF";
+        // String message = "At four surveillance on enemy camp";
+        // String keyword = "MAINE";
+        // String keyword2 = "LESRF"; //both must be same length for keywords
         
+        String fileName = "plaintext3.txt";
+        String message = fileString(fileName);
+        //System.out.println(message);
+        int len = 5; //must be 5-10 length, user changeable
+        String keyword = keyGenerator(len);
+        String keyword2 = keyGenerator(len);
         
         
         char[] messageArray = initCharArray(message);
+        //System.out.println("CharArray in main: " );
         // for (int i = 0; i < messageArray.length; i++)
         // {
         //     System.out.print(messageArray[i]);
         // }
-        // System.out.println(messageArray.length);
+        // System.out.println();
+
+        //System.out.println(messageArray.length);
         char[][] encryptedMessage = rewriteAndEncrypt(messageArray, keyword, keyword2); //will turn 1d array into 2d then encrypt and return encrypted
         for (int i = 0; i < encryptedMessage.length; i++)
         {
@@ -124,11 +137,11 @@ public class TermProject
         //FOR GENERAL CASE (no order, just length) -> boolean = FALSE
         //FOR SPECIFIC CASE (we want to use HACK order 3,1,2,4) -> boolean = TRUE
         boolean useKeyWordOrder = true; //turn this on to test with specific keywords not just their length
-        boolean useDoubleKeyWordOrder = false; //turn this true to test double transposition
+        boolean useDoubleKeyWordOrder = true; //turn this true to test double transposition
 
         int key = keyword.length();
-        int rows = key; //rows = keyLength
-        int columns = Math.ceilDiv(array.length, key);  //will round up
+        int columns = key; //rows = keyLength
+        int rows = Math.ceilDiv(array.length, key);  //will round up
         int check = rows* columns;
 
 
@@ -156,11 +169,11 @@ public class TermProject
             }
         }
 
-        // for (int i = 0; i < encrypted.length; i++)
+        // for (int i = 0; i < rewritten.length; i++)
         // {
-        //     for (int j = 0; j < encrypted[0].length; j++)
+        //     for (int j = 0; j < rewritten[0].length; j++)
         //     {
-        //         System.out.print(encrypted[i][j]);
+        //         System.out.print(rewritten[i][j]);
         //     }
         //     System.out.println();
         
@@ -181,7 +194,7 @@ public class TermProject
             }
             return rewritten = encryptWithOrder(rewritten, keywordIntOrder);
         }
-        //else
+        //else with no keyword encryption
         return rewritten;
     }
 
@@ -262,15 +275,17 @@ public class TermProject
         int[] orderArray = determineOrder(keyword);
         int row = encryptedMessage.length;
         int column = encryptedMessage[0].length;
+        //System.out.println(row + " , " + column);
         char[][] message = new char[row][column];
         int thisRow;
-        char [][] finalMessage = new char[row][column];
+        char [][] finalMessage = new char[column][row];
         //rewrites back into order (breaks single encryption)
+
         for (int i = 0; i < orderArray.length; i++)
         {
             thisRow = orderArray[i];
             //System.out.println(thisRow);
-            for (int j = 0; j < encryptedMessage[0].length; j++) //encrypts message
+            for (int j = 0; j < encryptedMessage[0].length; j++)
             {
                 message[thisRow][j] = encryptedMessage[i][j]; 
 
@@ -278,11 +293,11 @@ public class TermProject
         }
 
         //rewrites into full order (goes from column order to row order)
-        for (int j = 0; j < message[0].length; j++) //encrypts message
+        for (int j = 0; j < message[0].length; j++)
         {
             for (int i = 0; i < message.length; i++)
             {
-                finalMessage[i][j] = message[j][i];
+                finalMessage[j][i] = message[i][j];
                 //System.out.print(message[i][j]);
             }
             //System.out.println();
@@ -314,7 +329,7 @@ public class TermProject
         char[][] message = new char[row][column];
         char[][] message2 = new char[row][column];
         int thisRow;
-        char [][] finalMessage = new char[row][column];
+        char [][] finalMessage = new char[column][row];
         //rewrites back into order (breaks single encryption)
         int []orderArray2 = determineOrder(keyword2);
         for (int i = 0; i < orderArray2.length; i++)
@@ -346,7 +361,7 @@ public class TermProject
         {
             for (int i = 0; i < message.length; i++)
             {
-                finalMessage[i][j] = message[j][i];
+                finalMessage[j][i] = message[i][j];
                 //System.out.print(message[i][j]);
             }
             //System.out.println();
@@ -366,5 +381,49 @@ public class TermProject
         System.out.println();
         System.out.println(messageString);
         System.out.println();
+    }
+
+    public static String keyGenerator (int length)
+    {
+        String keyword = "";
+        Random random = new Random();
+        boolean [] repeat = new boolean[25];
+        
+        for (int i = 0; i < length; i++)
+        {
+            
+            int randInt = random.nextInt(25);
+            if (repeat[randInt])
+            {
+                while (repeat[randInt])
+                {
+                    randInt = random.nextInt(25);
+                }
+            }
+            char createString = (char) (randInt +'A');
+            repeat[randInt] = true;
+            keyword +=  createString;
+        }
+        return keyword;
+    }
+
+    public static String fileString(String fileName)
+    {
+        String line;
+        StringBuilder content = new StringBuilder();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            
+            while ((line = br.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle the exception according to your application's needs
+        }
+
+        return content.toString();
+
+        //return line;
+
     }
 }
